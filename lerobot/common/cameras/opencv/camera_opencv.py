@@ -263,9 +263,16 @@ class OpenCVCamera(Camera):
 
         for target in targets_to_scan:
             camera = cv2.VideoCapture(target)
-            if camera.isOpened():
-                default_width = int(camera.get(cv2.CAP_PROP_FRAME_WIDTH))
-                default_height = int(camera.get(cv2.CAP_PROP_FRAME_HEIGHT))
+            if not camera.isOpened():
+                continue
+
+            try:
+                ret, frame = camera.read()
+                if not ret or frame is None or frame.size == 0:
+                    logger.debug("Skipping OpenCV target %s: unable to grab test frame", target)
+                    continue
+
+                default_height, default_width = frame.shape[:2]
                 default_fps = camera.get(cv2.CAP_PROP_FPS)
                 default_format = camera.get(cv2.CAP_PROP_FORMAT)
                 camera_info = {
@@ -282,6 +289,7 @@ class OpenCVCamera(Camera):
                 }
 
                 found_cameras_info.append(camera_info)
+            finally:
                 camera.release()
 
         return found_cameras_info

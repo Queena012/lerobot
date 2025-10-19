@@ -369,6 +369,14 @@ class MotorsBus(abc.ABC):
     def _is_error(self, error: int) -> bool:
         return error != self._no_error
 
+    def _connection_error_hint(self) -> str:
+        return (
+            "\nTroubleshooting tips:"
+            f"\n  • Verify that the controller on port '{self.port}' is still connected and powered."
+            "\n  • Ensure `robot.port` targets the active USB serial device (rerun `python -m lerobot.find_port`)."
+            "\n  • Power-cycle the MotorsBus if the issue persists."
+        )
+
     def _assert_motors_exist(self) -> None:
         expected_models = {m.id: self.model_number_table[m.model] for m in self.motors.values()}
 
@@ -980,7 +988,9 @@ class MotorsBus(abc.ABC):
             )
 
         if not self._is_comm_success(comm) and raise_on_error:
-            raise ConnectionError(f"{err_msg} {self.packet_handler.getTxRxResult(comm)}")
+            raise ConnectionError(
+                f"{err_msg} {self.packet_handler.getTxRxResult(comm)}{self._connection_error_hint()}"
+            )
         elif self._is_error(error) and raise_on_error:
             raise RuntimeError(f"{err_msg} {self.packet_handler.getRxPacketError(error)}")
 
@@ -1043,7 +1053,9 @@ class MotorsBus(abc.ABC):
             )
 
         if not self._is_comm_success(comm) and raise_on_error:
-            raise ConnectionError(f"{err_msg} {self.packet_handler.getTxRxResult(comm)}")
+            raise ConnectionError(
+                f"{err_msg} {self.packet_handler.getTxRxResult(comm)}{self._connection_error_hint()}"
+            )
         elif self._is_error(error) and raise_on_error:
             raise RuntimeError(f"{err_msg} {self.packet_handler.getRxPacketError(error)}")
 

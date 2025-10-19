@@ -22,21 +22,18 @@ python -m lerobot.find_port
 ```
 """
 
-import platform
 import time
-from pathlib import Path
 
 
 def find_available_ports():
     from serial.tools import list_ports  # Part of pyserial library
 
-    if platform.system() == "Windows":
-        # List COM ports using pyserial
-        ports = [port.device for port in list_ports.comports()]
-    else:  # Linux/macOS
-        # List /dev/tty* ports for Unix-based systems
-        ports = [str(path) for path in Path("/dev").glob("tty*")]
-    return ports
+    # ``list_ports`` already handles the platform specific logic and, unlike
+    # globbing ``/dev`` on Unix, only returns the ports that are actually
+    # accessible.  This prevents us from collecting a long list of static
+    # ``/dev/ttyS*`` entries, which previously meant that disconnecting the
+    # MotorsBus did not change the list and the port could not be detected.
+    return [port.device for port in list_ports.comports()]
 
 
 def find_port():
